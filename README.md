@@ -60,3 +60,13 @@ OPENAI_API_KEYは環境変数OPENAI_API_KEYから取得するようにして。
 transcribe APIとchatcompletions APIのエンドポイントURLが異なるかもしれないので、別個にOPENAI_BASE_URL相当のものを設定できること。OPENAI_API_KEYも個別に設定できること。修正後のコード全てを出力して。
 
 要約のモデルには gpt-4o-miniを指定すること。修正後のコードをすべて出力して。
+
+## サーバ
+
+```bash
+pip install --upgrade pip
+pip install --upgrade transformers accelerate torchaudio
+pip install stable-ts==2.16.0
+pip install punctuators==0.0.5
+pip intalll moviepy
+```
