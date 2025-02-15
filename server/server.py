@@ -43,7 +43,12 @@ async def transcribe_audio(
     
     # 音声データの読み込み
     audio_input, sample_rate = sf.read(audio_file)
-    
+
+    # チャンネル数の確認
+    if audio_input.ndim > 1:
+        # ステレオやそれ以上の場合、モノラルに変換
+        audio_input = np.mean(audio_input, axis=1)
+
     # パイプラインの設定を更新
     generate_kwargs.update({
         "prompt": prompt,
