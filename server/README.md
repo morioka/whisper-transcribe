@@ -11,6 +11,11 @@ pip install fastapi
 pip install soundfile
 ```
 
+```
+uvicorn server:app --reload
+```
+
+
 https://chatgpt.com/share/67b04b7a-f8c4-8002-95f9-4b60b904d5da
 
 ollamaサーバと同じ機能をfastapiで作りたい
