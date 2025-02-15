@@ -1,13 +1,15 @@
+import os
 import tkinter as tk
 from tkinter import scrolledtext, messagebox
 from tkinterdnd2 import DND_FILES, TkinterDnD
 import requests
-import openai
-from moviepy.editor import VideoFileClip
-import os
+from moviepy import VideoFileClip
 
-# OpenAI APIキー（環境変数を推奨）
-OPENAI_API_KEY = "your-api-key"
+# OpenAI APIキーを環境変数から取得
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    messagebox.showerror("エラー", "環境変数 OPENAI_API_KEY が設定されていません。")
+    exit()
 
 def transcribe_audio(file_path):
     """ OpenAI Transcribe APIを使って音声を書き起こす """
@@ -24,8 +26,18 @@ def transcribe_audio(file_path):
         messagebox.showerror("エラー", f"書き起こしに失敗しました: {e}")
         return None
 
-def summarize_text(text, summary_prompt):
-    """ OpenAI Chat APIを使って書き起こしを要約する """
+def summarize_text():
+    """ 「要約」ボタンを押したときに実行。書き起こし結果を要約する """
+    text = transcription_text.get("1.0", tk.END).strip()
+    summary_prompt = summary_prompt_text.get("1.0", tk.END).strip()
+
+    if not text:
+        messagebox.showwarning("警告", "書き起こし結果がありません。")
+        return
+    
+    if not summary_prompt:
+        summary_prompt = "以下の文章を簡潔に要約してください。"
+
     url = "https://api.openai.com/v1/chat/completions"
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
     data = {
@@ -37,10 +49,11 @@ def summarize_text(text, summary_prompt):
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
+        summary = response.json()["choices"][0]["message"]["content"]
+        summary_text.delete("1.0", tk.END)
+        summary_text.insert(tk.END, summary)
     except requests.exceptions.RequestException as e:
         messagebox.showerror("エラー", f"要約に失敗しました: {e}")
-        return None
 
 def extract_audio_from_video(video_path):
     """ 動画ファイルから音声を抽出し、WAVに変換して保存 """
@@ -71,16 +84,6 @@ def on_drop(event):
         transcription_text.delete("1.0", tk.END)
         transcription_text.insert(tk.END, transcription)
 
-        # 要約指示を取得
-        summary_prompt = summary_prompt_text.get("1.0", tk.END).strip()
-        if not summary_prompt:
-            summary_prompt = "以下の文章を簡潔に要約してください。"
-
-        summary = summarize_text(transcription, summary_prompt)
-        if summary:
-            summary_text.delete("1.0", tk.END)
-            summary_text.insert(tk.END, summary)
-
     # 一時的な音声ファイルを削除
     if temp_audio_path:
         os.remove(temp_audio_path)
@@ -95,7 +98,7 @@ def copy_to_clipboard(text_widget):
 # --- GUIセットアップ ---
 root = TkinterDnD.Tk()
 root.title("音声書き起こしアプリ")
-root.geometry("600x600")
+root.geometry("600x650")
 
 # ドロップエリア
 drop_label = tk.Label(root, text="ここに音声・動画ファイルをドロップ", bg="lightgray", relief="ridge", width=50, height=4)
@@ -115,6 +118,10 @@ tk.Label(root, text="要約指示（例: 箇条書きでまとめる）").pack()
 summary_prompt_text = scrolledtext.ScrolledText(root, height=3)
 summary_prompt_text.pack(fill="both", expand=True, padx=10)
 summary_prompt_text.insert(tk.END, "以下の文章を簡潔に要約してください。")
+
+# 要約ボタン
+summary_btn = tk.Button(root, text="要約", command=summarize_text, bg="lightblue")
+summary_btn.pack(pady=5)
 
 # 要約結果
 tk.Label(root, text="要約結果").pack()
