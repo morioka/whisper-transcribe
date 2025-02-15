@@ -5,21 +5,29 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 import requests
 from moviepy import VideoFileClip
 
-# OpenAI APIキーを環境変数から取得
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    messagebox.showerror("エラー", "環境変数 OPENAI_API_KEY が設定されていません。")
+# OpenAI APIのエンドポイントとAPIキーを環境変数から取得
+OPENAI_TRANSCRIBE_BASE_URL = os.getenv("OPENAI_TRANSCRIBE_BASE_URL", "https://api.openai.com/v1/audio/transcriptions")
+OPENAI_CHAT_BASE_URL = os.getenv("OPENAI_CHAT_BASE_URL", "https://api.openai.com/v1/chat/completions")
+
+OPENAI_TRANSCRIBE_API_KEY = os.getenv("OPENAI_TRANSCRIBE_API_KEY")
+OPENAI_CHAT_API_KEY = os.getenv("OPENAI_CHAT_API_KEY")
+
+if not OPENAI_TRANSCRIBE_API_KEY:
+    messagebox.showerror("エラー", "環境変数 OPENAI_TRANSCRIBE_API_KEY が設定されていません。")
+    exit()
+
+if not OPENAI_CHAT_API_KEY:
+    messagebox.showerror("エラー", "環境変数 OPENAI_CHAT_API_KEY が設定されていません。")
     exit()
 
 def transcribe_audio(file_path):
     """ OpenAI Transcribe APIを使って音声を書き起こす """
-    url = "https://api.openai.com/v1/audio/transcriptions"
-    headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
+    headers = {"Authorization": f"Bearer {OPENAI_TRANSCRIBE_API_KEY}"}
     files = {"file": open(file_path, "rb")}
     data = {"model": "whisper-1", "language": "ja"}
 
     try:
-        response = requests.post(url, headers=headers, files=files, data=data)
+        response = requests.post(OPENAI_TRANSCRIBE_BASE_URL, headers=headers, files=files, data=data)
         response.raise_for_status()
         return response.json()["text"]
     except requests.exceptions.RequestException as e:
@@ -38,8 +46,10 @@ def summarize_text():
     if not summary_prompt:
         summary_prompt = "以下の文章を簡潔に要約してください。"
 
-    url = "https://api.openai.com/v1/chat/completions"
-    headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
+    headers = {
+        "Authorization": f"Bearer {OPENAI_CHAT_API_KEY}",
+        "Content-Type": "application/json"
+    }
     data = {
         "model": "gpt-4",
         "messages": [{"role": "system", "content": summary_prompt},
@@ -47,7 +57,7 @@ def summarize_text():
     }
 
     try:
-        response = requests.post(url, headers=headers, json=data)
+        response = requests.post(OPENAI_CHAT_BASE_URL, headers=headers, json=data)
         response.raise_for_status()
         summary = response.json()["choices"][0]["message"]["content"]
         summary_text.delete("1.0", tk.END)

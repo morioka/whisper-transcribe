@@ -46,3 +46,5 @@ tkinterを使って、音声書き起こしアプリをつくる。音声ファ�
 OPENAI_API_KEYは環境変数OPENAI_API_KEYから取得するようにして。
 また、from moviepy.editor import VideoFileClip　の個所は、最新版では from moviepy import VideoFileClip が正しい。修正後のコードをすべて出力して。
 
+transcribe APIとchatcompletions APIのエンドポイントURLが異なるかもしれないので、別個にOPENAI_BASE_URL相当のものを設定できること。OPENAI_API_KEYも個別に設定できること。修正後のコード全てを出力して。
+
