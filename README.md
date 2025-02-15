@@ -1,15 +1,19 @@
 # whisper-transcribe
 
-そっけない、音声書き起こし。
+何の変哲もない、音声書き起こし。
 
 - windows app側で、音声ファイルのドロップ、書き起こし・要約依頼
-- server側で、openai whisper api互換の書き起こし
-- 要約はどこかのopenai chatcompletions api互換のLLMにおまかせ
+- server側で、openai whisper api互換の書き起こし。たとえば [morioka/tiny-openai-whisper-api](https://github.com/morioka/tiny-openai-whisper-api)。 Xinferenceのものでもよい。
+- 要約はどこかのopenai chatcompletions api互換のLLMにおまかせ。たとえば ollama で。
 
 
 ## 準備
 
+Windows 11上で。Python 3.13.2
+
 ```bash
+git clone https://github.com/morioka/whisper-transcribe
+cd whiper-transcribe
 python -m venv venv
 venv\Scripts\activate
 python -m pip install --upgrade pip
@@ -19,6 +23,9 @@ python -m pip install tkinterdnd2 openai moviepy requests
 ## 利用
 
 ```bash
+cd whiper-transcribe
+venv\Scripts\activate
+
 python app.py
 ```
 
@@ -29,6 +36,10 @@ OpenAI ChatCompletions API互換相手に要約。
 
 
 ## アプリコード作成のプロンプト
+
+chatgptにコード作成を指示した。出力したコードを確認しながら、指示を更新した。
+
+https://chatgpt.com/share/67afff60-1a00-8002-ba25-689851cc5eef
 
 tkinterを使って、音声書き起こしアプリをつくる。音声ファイルをドロップする。そのファイルを書き起こしサーバに送る。apiはopenai transcribe apiと同じ。但しrequestsを使うこと。得た書き起こしを、表示すること。さらに要約するようopenai chat apiを使うこと。結果を別に表示すること。それぞれの結果はコピーできること
 
@@ -48,3 +59,4 @@ OPENAI_API_KEYは環境変数OPENAI_API_KEYから取得するようにして。
 
 transcribe APIとchatcompletions APIのエンドポイントURLが異なるかもしれないので、別個にOPENAI_BASE_URL相当のものを設定できること。OPENAI_API_KEYも個別に設定できること。修正後のコード全てを出力して。
 
+要約のモデルには gpt-4o-miniを指定すること。修正後のコードをすべて出力して。

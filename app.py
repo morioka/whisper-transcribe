@@ -51,7 +51,7 @@ def summarize_text():
         "Content-Type": "application/json"
     }
     data = {
-        "model": "gpt-4",
+        "model": "gpt-4o-mini",
         "messages": [{"role": "system", "content": summary_prompt},
                      {"role": "user", "content": text}]
     }
