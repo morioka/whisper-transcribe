@@ -21,7 +21,7 @@ asr_pipeline = pipeline(
     torch_dtype=torch_dtype,
     device=device,
     model_kwargs=model_kwargs,
-    batch_size=1,
+    batch_size=1,   # この部分は手で修正。環境依存だろう
     trust_remote_code=True,
     punctuator=True  # 句読点を追加する場合は True、無効にする場合は False
 )
