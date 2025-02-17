@@ -6,6 +6,9 @@ import io
 import soundfile as sf
 import numpy as np
 
+import os
+import shutil
+
 app = FastAPI()
 
 # モデルとパイプラインの設定
@@ -38,11 +41,23 @@ async def transcribe_audio(
     """
     OpenAI Transcribe API 互換のエンドポイント。
     """
-    audio_bytes = await file.read()
-    audio_file = io.BytesIO(audio_bytes)
-    
-    # 音声データの読み込み
-    audio_input, sample_rate = sf.read(audio_file)
+    if True:
+        # 人手修正。音声フォーマットを特定できないので、ファイルに落として、後はまかせる
+        UPLOAD_DIR='/tmp'
+        filename = file.filename
+        fileobj = file.file
+        upload_name = os.path.join(UPLOAD_DIR, filename)
+        upload_file = open(upload_name, 'wb+')
+        shutil.copyfileobj(fileobj, upload_file)
+        upload_file.close()
+
+        audio_input = upload_name
+    else:
+        audio_bytes = await file.read()
+        audio_file = io.BytesIO(audio_bytes)
+        
+        # 音声データの読み込み
+        audio_input, sample_rate = sf.read(audio_file)
 
     # チャンネル数の確認
     if audio_input.ndim > 1:
