@@ -8,6 +8,7 @@ import numpy as np
 
 import os
 import shutil
+import tempfile
 
 app = FastAPI()
 
@@ -41,46 +42,48 @@ async def transcribe_audio(
     """
     OpenAI Transcribe API 互換のエンドポイント。
     """
-    if True:
-        # 人手修正。音声フォーマットを特定できないので、ファイルに落として、後はまかせる
-        UPLOAD_DIR='/tmp'
-        filename = file.filename
-        fileobj = file.file
-        upload_name = os.path.join(UPLOAD_DIR, filename)
-        upload_file = open(upload_name, 'wb+')
-        shutil.copyfileobj(fileobj, upload_file)
-        upload_file.close()
 
-        audio_input = upload_name
-    else:
-        audio_bytes = await file.read()
-        audio_file = io.BytesIO(audio_bytes)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        if True:
+            # 人手修正。音声フォーマットを特定できないので、ファイルに落として、後はまかせる
+            UPLOAD_DIR=tmpdirname
+            filename = file.filename
+            fileobj = file.file
+            upload_name = os.path.join(UPLOAD_DIR, filename)
+            upload_file = open(upload_name, 'wb+')
+            shutil.copyfileobj(fileobj, upload_file)
+            upload_file.close()
+
+            audio_input = upload_name
+        else:
+            audio_bytes = await file.read()
+            audio_file = io.BytesIO(audio_bytes)
+            
+            # 音声データの読み込み
+            audio_input, sample_rate = sf.read(audio_file)
+
+        # チャンネル数の確認
+        if audio_input.ndim > 1:
+            # ステレオやそれ以上の場合、モノラルに変換
+            audio_input = np.mean(audio_input, axis=1)
+
+        # パイプラインの設定を更新
+        generate_kwargs.update({
+            "prompt": prompt,
+            "temperature": temperature,
+            "language": language,
+            "task": task
+        })
         
-        # 音声データの読み込み
-        audio_input, sample_rate = sf.read(audio_file)
-
-    # チャンネル数の確認
-    if audio_input.ndim > 1:
-        # ステレオやそれ以上の場合、モノラルに変換
-        audio_input = np.mean(audio_input, axis=1)
-
-    # パイプラインの設定を更新
-    generate_kwargs.update({
-        "prompt": prompt,
-        "temperature": temperature,
-        "language": language,
-        "task": task
-    })
-    
-    # 文字起こし
-    result = asr_pipeline(
-        audio_input,
-        chunk_length_s=15,
-        return_timestamps=(response_format == "verbose_json"),
-        generate_kwargs=generate_kwargs
-    )
-    
-    if response_format == "verbose_json":
-        return result
+        # 文字起こし
+        result = asr_pipeline(
+            audio_input,
+            chunk_length_s=15,
+            return_timestamps=(response_format == "verbose_json"),
+            generate_kwargs=generate_kwargs
+        )
+        
+        if response_format == "verbose_json":
+            return result
     
     return {"text": result["text"]}
