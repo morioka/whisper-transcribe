@@ -7,7 +7,7 @@ pip install --upgrade transformers accelerate torchaudio
 pip install stable-ts==2.16.0
 pip install punctuators==0.0.5
 pip install moviepy
-pip install fastapi
+pip install fastapi uvicorn python-multipart
 pip install soundfile
 ```
 

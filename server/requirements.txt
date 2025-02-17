@@ -1,0 +1,10 @@
+transformers
+accelerate
+torchaudio
+stable-ts==2.16.0
+punctuators==0.0.5
+moviepy
+fastapi
+uvicorn
+python-multipart
+soundfile
